@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        li {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div>IP:
+        <input id="ip" value="192.168.2.24" />
+    </div>
+    <div>Port:
+        <input id="port" value="5389" />
+    </div>
+    <div>
+        IOS/Android:
+        <label><input name="sys" type="radio" value="ios" />IOS</label>
+        <label><input name="sys" type="radio" value="android" checked />Android</label>
+    </div>
+    <div>ModuleName:
+        <input id="name" value="rn_car_zt" />
+    </div>
+    <div>initialPage:
+        <input id="initial" value="Home" />
+    </div>
+    <div style="color:#aaa; font-size: 12px">
+        <div>
+            记住现在的值:
+            <input type="checkbox" checked id="record" />
+        </div>
+        <div id="text"></div>
+    </div>
+
+    <div><button id="create">生成二维码</button></div>
+    <div id="qrcode"></div>
+
+
+
+
+    <script src="./jquery.min.js"></script>
+    <script src="./qrcode.min.js"></script>
+    <script>
+        var qrcode;
+        function initValue() {
+            var ip = localStorage.getItem('ip');
+            if (ip) {
+                $('#ip').val(ip);
+            }
+            var port = localStorage.getItem('port');
+            if (port) {
+                $('#port').val(port);
+            }
+            var name = localStorage.getItem('name');
+            if (name) {
+                $('#name').val(name);
+            }
+            var initial = localStorage.getItem('initial');
+            if (initial) {
+                $('#initial').val(initial);
+            }
+            var ip = localStorage.getItem('ip');
+            if (ip) {
+                $('#ip').val(ip);
+            }
+            var sys = localStorage.getItem('sys');
+            if(sys) {
+                $('input:radio[name="sys"]').filter('[value='+ sys + ']').prop('checked', true);
+            }
+            
+        }
+        initValue();
+        $('#history li').click(function (e, b) {
+            var text = $(this).text();
+            $('#qrcode').html('');
+            qrcode = new QRCode(document.getElementById('qrcode'), text);
+        });
+        $('#create').click(function (e) {
+            var ip = $('#ip').val();
+            var port = $('#port').val();
+            var name = $('#name').val();
+            var sys = $('input[name=sys]:checked').val();
+            var initial = $('#initial').val();
+
+            var text = 'http://' + ip + ':' + port + '/index.' + sys + '.bundle?CRNModuleName=' + name + '&CRNType=1&initialPage=' + initial;
+            $('#text').html(text);
+            $('#qrcode').html('');
+            qrcode = new QRCode(document.getElementById('qrcode'), text);
+
+            // 如果有记录,就记录
+            var isRecord = $('#record').prop('checked');
+            if (isRecord) {
+                record();
+            }
+        });
+        $('#create').click();
+
+        // 记录值
+        function record() {
+            localStorage.setItem('ip', $('#ip').val());
+            localStorage.setItem('port', $('#port').val());
+            localStorage.setItem('sys', $('input[name=sys]:checked').val());
+            localStorage.setItem('name', $('#name').val());
+            localStorage.setItem('initial', $('#initial').val());
+        }
+
+
+    </script>
+    5.10 周五 08:45-16:50 8:05 730
+    5.12 周日 15:15-02:15 11:00 684
+    
+    5.24 周五 16:05-18:45 2:40 815
+    5.27 周一 15:15-02:15 11:00 684
+    
+    6.6 周四 07:25-10:10 2:45 815
+    端午节三天
+    6.10 周一 15:15-02:15 11:00 769
+</body>
+
+</html>
