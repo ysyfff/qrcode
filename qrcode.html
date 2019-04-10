@@ -113,6 +113,7 @@
                     }else{
                         list.push(originV);
                         localStorage.setItem(this.type, list);
+                        this.updateV(this.name, v);
                         this.list = list;
                     }
                 }
