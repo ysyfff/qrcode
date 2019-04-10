@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        li {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div>IP:
+            <input v-model="ip" />
+        </div>
+        <div>Port:
+            <input v-model="port" />
+        </div>
+        <div>
+            IOS/Android:
+            <label><input v-model="sys" type="radio" value="ios" />IOS</label>
+            <label><input v-model="sys" type="radio" value="android" />Android</label>
+        </div>
+        <div>ModuleName:
+            <input v-model="name" value="rn_car_zt" />
+        </div>
+        <div>initialPage:
+            <input v-model="initial" value="Home" />
+        </div>
+        <div style="color:#aaa; font-size: 12px">
+            <div>
+                记住现在的值:
+                <input type="checkbox" v-model="isRecord" />
+            </div>
+            <div>{{text}}</div>
+        </div>
+
+        <div><button id="create" @click="createQrcode">生成二维码</button></div>
+        <div id="qrcode" class="qrcode"></div>
+    </div>
+
+    <!-- <script src="./jquery.min.js"></script> -->
+    <script src="./vue.min.js"></script>
+    <script src="./qrcode.min.js"></script>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                ip: '192.168.2.24',
+                port: '5389',
+                name: 'rn_car_zt',
+                initial: 'Home',
+                isRecord: true,
+                sys: 'android',
+            },
+            computed: {
+                text: function () {
+                    return 'http://' + this.ip + ':' + this.port + '/index.' + this.sys + '.bundle?CRNModuleName=' + this.name + '&CRNType=1&initialPage=' + this.initial;
+                }
+            },
+            mounted() {
+                this.fillWithRecord();
+            },
+            methods: {
+                createQrcode: function (e) {
+                    document.getElementById('qrcode').innerHTML = '';
+                    qrcode = new QRCode(document.getElementById('qrcode'), this.text);
+                    if (this.isRecord) {
+                        this.record();
+                    }
+                },
+                fillWithRecord: function () {
+                    var ip = localStorage.getItem('ip');
+                    if (ip) {
+                        this.ip = ip;
+                    }
+                    var port = localStorage.getItem('port');
+                    if (port) {
+                        this.port = port;
+                    }
+                    var sys = localStorage.getItem('sys');
+                    if (sys) {
+                        this.sys = sys;
+                    }
+                    var name = localStorage.getItem('name');
+                    if (name) {
+                        this.name = name;
+                    }
+                    var initial = localStorage.getItem('initial');
+                    if (initial) {
+                        this.initial = initial;
+                    }
+
+                },
+                record: function () {
+                    localStorage.setItem('ip', this.ip);
+                    localStorage.setItem('port', this.port);
+                    localStorage.setItem('sys', this.sys);
+                    localStorage.setItem('name', this.name);
+                    localStorage.setItem('initial', this.initial);
+                }
+            }
+        })
+    </script>
+    <!-- <script>
+        var qrcode;
+        function initValue() {
+            var ip = localStorage.getItem('ip');
+            if (ip) {
+                $('#ip').val(ip);
+            }
+            var port = localStorage.getItem('port');
+            if (port) {
+                $('#port').val(port);
+            }
+            var name = localStorage.getItem('name');
+            if (name) {
+                $('#name').val(name);
+            }
+            var initial = localStorage.getItem('initial');
+            if (initial) {
+                $('#initial').val(initial);
+            }
+            var ip = localStorage.getItem('ip');
+            if (ip) {
+                $('#ip').val(ip);
+            }
+            var sys = localStorage.getItem('sys');
+            if (sys) {
+                $('input:radio[name="sys"]').filter('[value=' + sys + ']').prop('checked', true);
+            }
+
+        }
+        initValue();
+        $('#history li').click(function (e, b) {
+            var text = $(this).text();
+            $('#qrcode').html('');
+            qrcode = new QRCode(document.getElementById('qrcode'), text);
+        });
+        $('#create').click(function (e) {
+            var ip = $('#ip').val();
+            var port = $('#port').val();
+            var name = $('#name').val();
+            var sys = $('input[name=sys]:checked').val();
+            var initial = $('#initial').val();
+
+            var text = 'http://' + ip + ':' + port + '/index.' + sys + '.bundle?CRNModuleName=' + name + '&CRNType=1&initialPage=' + initial;
+            $('#text').html(text);
+            $('#qrcode').html('');
+            qrcode = new QRCode(document.getElementById('qrcode'), text);
+
+            // 如果有记录,就记录
+            var isRecord = $('#record').prop('checked');
+            if (isRecord) {
+                record();
+            }
+        });
+        $('#create').click();
+
+        // 记录值
+        function record() {
+            localStorage.setItem('ip', $('#ip').val());
+            localStorage.setItem('port', $('#port').val());
+            localStorage.setItem('sys', $('input[name=sys]:checked').val());
+            localStorage.setItem('name', $('#name').val());
+            localStorage.setItem('initial', $('#initial').val());
+        }
+
+        function tag(name) {
+            var tags = localStorage.getItem(tag);
+            tags.map(function (item) {
+
+            });
+        }
+
+    </script> -->
+</body>
+
+</html>
