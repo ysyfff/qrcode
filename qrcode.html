@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<meta charset="utf-8" />
 
 <head>
     <style>
@@ -14,16 +15,19 @@
             border-radius: 3px;
             margin-right: 8px;
         }
-        .close{
+
+        .close {
             color: blue;
             cursor: pointer;
             padding: 1px 2px 4px 5px;
         }
-        .add{
+
+        .add {
             color: blue;
             cursor: pointer;
             padding: 2px;
         }
+
         .content {
             cursor: pointer;
         }
@@ -45,11 +49,11 @@
         </div>
         <div>ModuleName:
             <input v-model="name" value="rn_car_zt" />
-            <tag-t type="tags-name" name="name" :update-v="setV" :get-v="getV"></tag-t>
+            <tag-t type="tags-name" name="name" :update-v="setV" :get-v="getV" ref="tagsName"></tag-t>
         </div>
         <div>initialPage:
             <input v-model="initial" value="Home" />
-            <tag-t type="tags-initial" name="initial" :update-v="setV" :get-v="getV"></tag-t>
+            <tag-t type="tags-initial" name="initial" :update-v="setV" :get-v="getV" ref="tagsInitial"></tag-t>
         </div>
         <div style="color:#aaa; font-size: 12px">
             <div>
@@ -78,39 +82,52 @@
                 }
             },
             mounted() {
-                this.list = this.getList()
+                this.list = this.getList();
+                var _this = this;
+                setTimeout(function(){
+                    _this.initStorage();
+                }, 0);
             },
             methods: {
-                getList: function() {
+                initStorage: function () {
+                    
+                    var list = this.getList();
+                    this.list = list;
+                },
+                getList: function () {
                     var list = (localStorage.getItem(this.type) || '').split(',');
                     return list;
                 },
                 remove: function (item) {
                     var list = this.getList();
-                    if(list.length) {
+                    if (list.length) {
                         list.splice(list.indexOf(item), 1);
                         localStorage.setItem(this.type, list);
                         this.list = list;
                     }
                 },
-                preAdd: function() {
+                preAdd: function () {
                     this.isAdding = true;
                 },
-                add: function () {
-                    
+                add: function (v) {
                     var list = this.getList();
-                    list.push(this.content);
-                    localStorage.setItem(this.type, list);
-                    this.list = list;
-                    this.isAdding = false;
-                    this.content = '';
+                    const vv = typeof v === 'string' ? v : this.content;
+                    
+                    if(!list.includes(vv)) {
+                        list.push(vv);
+                        localStorage.setItem(this.type, list);
+                        this.list = list;
+                        this.isAdding = false;
+                        this.content = '';
+                    }
+                    
                 },
-                setV: function(v) {
+                setV: function (v) {
                     var list = this.getList();
                     var originV = this.getV(this.name);
-                    if(list.includes(originV)){
+                    if (list.includes(originV)) {
                         this.updateV(this.name, v);
-                    }else{
+                    } else {
                         list.push(originV);
                         localStorage.setItem(this.type, list);
                         this.updateV(this.name, v);
@@ -124,9 +141,9 @@
                         <span class="content" @click="setV(item)">{{item}}</span> <span class="close" @click="remove(item)">x</span>
                     </span>
                 </span>
-                <span v-if="isAdding === false" class="preAdd" @click="preAdd">+</span>
+                <span v-if="isAdding === false" class="add" @click="preAdd">+</span>
                 <span v-if="isAdding === true" class="preAdd" >
-                    <input v-model="content" /> <button @click="add">确定</button>
+                    <input v-model="content" /> <button @click="add">&radic;</button>
                 </span>
             </span>`
         });
@@ -147,10 +164,15 @@
                 }
             },
             mounted() {
+                this.storeTags();
                 this.fillWithRecord();
             },
             methods: {
-                getV: function(name) {
+                storeTags: function () {
+                    this.$refs.tagsName.add(this.name);
+                    this.$refs.tagsInitial.add(this.initial);
+                },
+                getV: function (name) {
                     return this[name];
                 },
                 createQrcode: function (e) {
@@ -160,7 +182,7 @@
                         this.record();
                     }
                 },
-                setV: function(name, v) {
+                setV: function (name, v) {
                     this[name] = v;
                 },
                 fillWithRecord: function () {
@@ -184,6 +206,7 @@
                     if (initial) {
                         this.initial = initial;
                     }
+
 
                 },
                 record: function () {
