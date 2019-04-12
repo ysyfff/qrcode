@@ -31,39 +31,85 @@
         .content {
             cursor: pointer;
         }
+
+        .ubt {
+            margin: 15px 0;
+        }
+
+        .mtb15 {
+            margin: 15px 0;
+        }
+
+        .ml10 {
+            margin-left: 10px;
+        }
+
+        .inline-block {
+            display: inline-block;
+        }
+
+        .text {
+            color: #aaa;
+            font-size: 12px
+        }
+
+        .label-name {
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
+        .tips{
+            color: #f00000;
+        }
     </style>
 </head>
 
 <body>
     <div id="app">
-        <div>IP:
+        <div>
+            <div class="label-name">CRN/QRN:</div>
+            <label><input v-model="qc" type="radio" value="c" />CRN</label>
+            <label class="ml10"><input v-model="qc" type="radio" value="q" />QRN</label>
+        </div>
+        <div>
+            <div class="label-name">IP:</div>
             <input v-model="ip" />
         </div>
-        <div>Port:
+        <div>
+            <div class="label-name">Port:</div>
             <input v-model="port" />
         </div>
         <div>
-            IOS/Android:
+            <div class="label-name">IOS/Android:</div>
             <label><input v-model="sys" type="radio" value="ios" />IOS</label>
-            <label><input v-model="sys" type="radio" value="android" />Android</label>
+            <label class="ml10"><input v-model="sys" type="radio" value="android" />Android</label>
         </div>
-        <div>ModuleName:
+        <div>
+            <div class="label-name">ModuleName:</div>
             <input v-model="name" value="rn_car_zt" />
-            <tag-t type="tags-name" name="name" :update-v="setV" :get-v="getV" ref="tagsName"></tag-t>
+            <tag-t type="tags-name" name="name" :update-v="setV" :get-v="getV" ref="tagsName" :auto-save="autoSave"
+                :input-value="name"></tag-t>
         </div>
-        <div>initialPage:
+        <div>
+            <div class="label-name">initialPage:</div>
             <input v-model="initial" value="Home" />
-            <tag-t type="tags-initial" name="initial" :update-v="setV" :get-v="getV" ref="tagsInitial"></tag-t>
+            <tag-t type="tags-initial" name="initial" :update-v="setV" :get-v="getV" ref="tagsInitial"
+                :auto-save="autoSave" :input-value="initial"></tag-t>
         </div>
-        <div style="color:#aaa; font-size: 12px">
-            <div>
-                记住现在的值:
-                <input type="checkbox" v-model="isRecord" />
-            </div>
+        <div class="text mtb15">
             <div>{{text}}</div>
         </div>
 
-        <div><button id="create" @click="createQrcode">生成二维码</button></div>
+        <div class="ubt"><button id="create" @click="createQrcode">生成二维码</button>
+            <div class="text ml10 inline-block">
+                <label><input type="checkbox" v-model="isRecord" />记住现在的值</label>
+            </div>
+            <div class="text ml10 inline-block">
+                <label><input type="checkbox" v-model="autoSave" />将输入值存入对应tag中</label>
+            </div>
+        </div>
         <div id="qrcode" class="qrcode"></div>
     </div>
 
@@ -72,25 +118,26 @@
     <script src="./qrcode.min.js"></script>
     <script>
         Vue.component('tag-t', {
-            props: ['type', 'update-v', 'name', 'get-v'],
+            props: ['type', 'update-v', 'name', 'get-v', 'auto-save', 'input-value'],
             data: function () {
                 return {
                     list: [],
                     count: 0,
                     isAdding: false,
+                    showAlert: false,
                     content: ''
                 }
             },
             mounted() {
                 this.list = this.getList();
                 var _this = this;
-                setTimeout(function(){
+                setTimeout(function () {
                     _this.initStorage();
                 }, 0);
             },
             methods: {
                 initStorage: function () {
-                    
+
                     var list = this.getList();
                     this.list = list;
                 },
@@ -101,6 +148,12 @@
                 remove: function (item) {
                     var list = this.getList();
                     if (list.length) {
+                        if (item === localStorage.getItem(this.name) && this.autoSave) {
+                            this.showAlert = true;
+                            setTimeout(() => {
+                                this.showAlert = false;
+                            }, 5000)
+                        }
                         list.splice(list.indexOf(item), 1);
                         localStorage.setItem(this.type, list);
                         this.list = list;
@@ -112,15 +165,15 @@
                 add: function (v) {
                     var list = this.getList();
                     const vv = typeof v === 'string' ? v : this.content;
-                    
-                    if(!list.includes(vv)) {
+
+                    if (!list.includes(vv)) {
                         list.push(vv);
                         localStorage.setItem(this.type, list);
                         this.list = list;
                         this.isAdding = false;
                         this.content = '';
                     }
-                    
+
                 },
                 setV: function (v) {
                     var list = this.getList();
@@ -145,6 +198,7 @@
                 <span v-if="isAdding === true" class="preAdd" >
                     <input v-model="content" /> <button @click="add">&radic;</button>
                 </span>
+                <span class="text tips" v-if="showAlert">由于选中了"将输入的值存入对应tag中",而且本地记住的值和tag名相同,所以刷新页面将会再次将删除的值存入tag中</span>
             </span>`
         });
 
@@ -157,6 +211,8 @@
                 initial: 'Home',
                 isRecord: true,
                 sys: 'android',
+                qc: 'c',
+                autoSave: true
             },
             computed: {
                 text: function () {
@@ -180,6 +236,10 @@
                     qrcode = new QRCode(document.getElementById('qrcode'), this.text);
                     if (this.isRecord) {
                         this.record();
+                    }
+                    if (this.autoSave) {
+                        this.$refs.tagsName.add(this.name);
+                        this.$refs.tagsInitial.add(this.initial);
                     }
                 },
                 setV: function (name, v) {
