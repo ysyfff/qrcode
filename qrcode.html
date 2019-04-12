@@ -7,9 +7,11 @@
         li {
             cursor: pointer;
         }
-        #app{
+
+        #app {
             font-size: 13px;
         }
+
         .tag-wrap {
             background: #ccc;
             padding: 1px 5px;
@@ -63,10 +65,10 @@
             margin-bottom: 6px;
             font-size: 13px;
         }
-        .tips{
+
+        .tips {
             color: #f00000;
         }
-        
     </style>
 </head>
 
@@ -205,7 +207,18 @@
                 <span class="text tips" v-if="showAlert">由于选中了"将输入的值存入对应tag中",而且本地记住的值和tag名相同,所以刷新页面将会再次将删除的值存入tag中</span>
             </span>`
         });
-
+        var config = {
+            c: {
+                moduleName: 'CRNModuleName',
+                type: 'CRNType',
+                initialPage: 'initialPage'
+            },
+            q: {
+                initialPage: 'initialPage',
+                moduleName: 'QRNModuleName',
+                type: 'QRNType',
+            }
+        }
         var app = new Vue({
             el: '#app',
             data: {
@@ -220,7 +233,10 @@
             },
             computed: {
                 text: function () {
-                    return 'http://' + this.ip + ':' + this.port + '/index.' + this.sys + '.bundle?CRNModuleName=' + this.name + '&CRNType=1&initialPage=' + this.initial;
+                    return 'http://' + this.ip + ':' + this.port + '/index.' + this.sys + '.bundle?'
+                        + config[this.qc].moduleName + '=' + this.name + '&'
+                        + config[this.qc].type + '=1&'
+                        + config[this.qc].initialPage + '=' + this.initial;
                 }
             },
             mounted() {
@@ -250,6 +266,10 @@
                     this[name] = v;
                 },
                 fillWithRecord: function () {
+                    var qc = localStorage.getItem('qc');
+                    if (qc) {
+                        this.qc = qc;
+                    }
                     var ip = localStorage.getItem('ip');
                     if (ip) {
                         this.ip = ip;
@@ -274,6 +294,7 @@
 
                 },
                 record: function () {
+                    localStorage.setItem('qc', this.qc);
                     localStorage.setItem('ip', this.ip);
                     localStorage.setItem('port', this.port);
                     localStorage.setItem('sys', this.sys);
