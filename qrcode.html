@@ -74,23 +74,41 @@
 
 <body>
     <div id="app">
+
         <div>
             <div class="label-name">CRN/QRN:</div>
             <label><input v-model="qc" type="radio" value="c" />CRN</label>
             <label class="ml10"><input v-model="qc" type="radio" value="q" />QRN</label>
         </div>
         <div>
+            <div class="label-name">本地/壳:</div>
+            <label><input v-model="env" type="radio" value="local" />本地</label>
+            <label class="ml10"><input v-model="env" type="radio" value="native" />壳</label>
+        </div>
+        <div v-if="env === 'local'">
             <div class="label-name">IP:</div>
             <input v-model="ip" />
         </div>
-        <div>
+        <div v-if="env === 'local'">
             <div class="label-name">Port:</div>
             <input v-model="port" />
         </div>
-        <div>
+        <div v-if="env === 'local'">
             <div class="label-name">IOS/Android:</div>
             <label><input v-model="sys" type="radio" value="ios" />IOS</label>
             <label class="ml10"><input v-model="sys" type="radio" value="android" />Android</label>
+        </div>
+        <div v-if="env === 'native'">
+            <div class="label-name">频道名:</div>
+            <input v-model="pindao" value="rn_useCar" />
+            <tag-t type="tags-pindao" name="pindao" :update-v="setV" :get-v="getV" ref="pindaoRef" :auto-save="autoSave"
+                :input-value="pindao"></tag-t>
+        </div>
+        <div v-if="env === 'native'">
+            <div class="label-name">配置名:</div>
+            <input v-model="config" value="_crn_config" />
+            <tag-t type="tags-config" name="config" :update-v="setV" :get-v="getV" ref="configRef" :auto-save="autoSave"
+                :input-value="config"></tag-t>
         </div>
         <div>
             <div class="label-name">ModuleName:</div>
@@ -229,14 +247,22 @@
                 isRecord: true,
                 sys: 'android',
                 qc: 'c',
-                autoSave: true
+                autoSave: true,
+                env: 'local',
+                pindao: 'rn_car_zt',
+                config: '_crn_config'
             },
             computed: {
                 text: function () {
-                    return 'http://' + this.ip + ':' + this.port + '/index.' + this.sys + '.bundle?'
+                    const text = this.env === 'local' ?
+                        'http://' + this.ip + ':' + this.port + '/index.' + this.sys + '.bundle?'
                         + config[this.qc].moduleName + '=' + this.name + '&'
                         + config[this.qc].type + '=1&'
-                        + config[this.qc].initialPage + '=' + this.initial;
+                        + config[this.qc].initialPage + '=' + this.initial
+                        :
+                        `${this.pindao}/${this.config}?${config[this.qc].moduleName}=${this.name}&${config[this.qc].type}=1&${config[this.qc].initialPage}=${this.initial}`;
+                    return text;
+
                 }
             },
             mounted() {
@@ -245,8 +271,10 @@
             },
             methods: {
                 storeTags: function () {
-                    this.$refs.tagsName.add(this.name);
-                    this.$refs.tagsInitial.add(this.initial);
+                    this.$refs.tagsName && this.$refs.tagsName.add(this.name);
+                    this.$refs.tagsInitial && this.$refs.tagsInitial.add(this.initial);
+                    this.$refs.pindaoRef && this.$refs.pindaoRef.add(this.pindao);
+                    this.$refs.configRef && this.$refs.configRef.add(this.config);
                 },
                 getV: function (name) {
                     return this[name];
@@ -258,8 +286,10 @@
                         this.record();
                     }
                     if (this.autoSave) {
-                        this.$refs.tagsName.add(this.name);
-                        this.$refs.tagsInitial.add(this.initial);
+                        this.$refs.tagsName && this.$refs.tagsName.add(this.name);
+                        this.$refs.tagsInitial && this.$refs.tagsInitial.add(this.initial);
+                        this.$refs.pindaoRef && this.$refs.pindaoRef.add(this.pindao);
+                        this.$refs.configRef && this.$refs.configRef.add(this.config);
                     }
                 },
                 setV: function (name, v) {
@@ -269,6 +299,18 @@
                     var qc = localStorage.getItem('qc');
                     if (qc) {
                         this.qc = qc;
+                    }
+                    var env = localStorage.getItem('env');
+                    if (env) {
+                        this.env = env;
+                    }
+                    var pindao = localStorage.getItem('pindao');
+                    if (pindao) {
+                        this.pindao = pindao;
+                    }
+                    var config = localStorage.getItem('config');
+                    if (config) {
+                        this.config = config;
                     }
                     var ip = localStorage.getItem('ip');
                     if (ip) {
@@ -294,8 +336,12 @@
 
                 },
                 record: function () {
+                    debugger
                     localStorage.setItem('qc', this.qc);
                     localStorage.setItem('ip', this.ip);
+                    localStorage.setItem('env', this.env);
+                    localStorage.setItem('pindao', this.pindao);
+                    localStorage.setItem('config', this.config);
                     localStorage.setItem('port', this.port);
                     localStorage.setItem('sys', this.sys);
                     localStorage.setItem('name', this.name);
