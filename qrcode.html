@@ -74,7 +74,6 @@
 
 <body>
     <div id="app">
-
         <div>
             <div class="label-name">CRN/QRN:</div>
             <label><input v-model="qc" type="radio" value="c" />CRN</label>
@@ -237,20 +236,27 @@
                 type: 'QRNType',
             }
         }
+        const watchers = ['qc', 'env', 'ip', 'port', 'name', 'initial', 'sys'];
         var app = new Vue({
             el: '#app',
             data: {
+                qc: 'c',
+                env: 'local',
+                sys: 'android',
                 ip: '192.168.2.24',
                 port: '5389',
                 name: 'rn_car_zt',
                 initial: 'Home',
                 isRecord: true,
-                sys: 'android',
-                qc: 'c',
                 autoSave: true,
-                env: 'local',
                 pindao: 'rn_car_zt',
                 config: '_crn_config'
+            },
+            watch: {
+                ...watchers.reduce((acc, next) => { acc[next] = function(v, o){ this.createQrcode(); }; return acc; }, {}),
+                // qc: function(v, o){
+                //     this.createQrcode();
+                // }
             },
             computed: {
                 text: function () {
@@ -332,11 +338,8 @@
                     if (initial) {
                         this.initial = initial;
                     }
-
-
                 },
                 record: function () {
-                    debugger
                     localStorage.setItem('qc', this.qc);
                     localStorage.setItem('ip', this.ip);
                     localStorage.setItem('env', this.env);
