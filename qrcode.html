@@ -253,10 +253,12 @@
                 config: '_crn_config'
             },
             watch: {
-                ...watchers.reduce((acc, next) => { acc[next] = function(v, o){ this.createQrcode(); }; return acc; }, {}),
-                // qc: function(v, o){
-                //     this.createQrcode();
-                // }
+                ...watchers.reduce((acc, next) => {
+                    acc[next] = function (v, o) {
+                        this.createQrcode();
+                    };
+                    return acc;
+                }, {}),
             },
             computed: {
                 text: function () {
