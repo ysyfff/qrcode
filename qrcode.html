@@ -148,6 +148,9 @@
                         描述
                     </th>
                     <th>
+                        频次
+                    </th>
+                    <th>
                         操作
                     </th>
                 </tr>
@@ -156,10 +159,13 @@
 
                 <tr v-for="v in ofenList">
                     <td>{{v.link}}</td>
-                    <td>{{v.qrcode}}</td>
+                    <td>{{v.qrcodeNode}}</td>
                     <td>{{v.desc}}</td>
+                    <td>{{v.count}}</td>
                     <td>
                         <button>删除</button>
+                        <button>生成二维码</button>
+                        <button>添加修改描述</button>
                     </td>
                 </tr>
             </tbody>
@@ -184,6 +190,12 @@
             }
         }
         const watchers = ['qc', 'env', 'ip', 'port', 'name', 'initial', 'sys'];
+        let calCount = false;
+        let lastQrCode = '';
+        // 在fillWithRecord的时候会导致重复计算count,使用setTimeout可解决此问题
+        setTimeout(() => {
+            calCount = true;
+        }, 100)
         var app = new Vue({
             el: '#app',
             data: {
@@ -199,17 +211,13 @@
                 pindao: 'rn_car_zt',
                 config: '_crn_config',
                 ofenList: [
-                    {
-                        link: '',
-                        qrcode: '',
-                        desc: '',
-                    }
                 ]
             },
             watch: {
                 ...watchers.reduce((acc, next) => {
                     acc[next] = function (v, o) {
-                        this.createQrcode();
+
+                        this.createQrcode(null, calCount);
                     };
                     return acc;
                 }, {}),
@@ -228,6 +236,7 @@
                 }
             },
             mounted() {
+                debugger
                 this.storeTags();
                 this.fillWithRecord();
             },
@@ -241,10 +250,39 @@
                 getV: function (name) {
                     return this[name];
                 },
-                createQrcode: function (e) {
+                existInOfen: function (key) {
+                    return this.ofenList.some(item => item.key === key);
+                },
+                calOfen: function () {
+
+                },
+                createQrcode: function (e, calCount) {
                     document.getElementById('qrcode').innerHTML = '';
                     qrcode = new QRCode(document.getElementById('qrcode'), this.text);
-                    debugger
+
+                    if (lastQrCode !== this.text) {
+
+                        if (calCount !== false) {
+
+                            if (this.existInOfen(this.text)) {
+                                this.ofenList.map(item => {
+                                    if (item.key === this.text) {
+                                        item.count++;
+                                    }
+                                })
+                            } else {
+                                this.ofenList.push({
+                                    key: this.text,
+                                    count: 0,
+                                    link: this.text,
+                                    qrcodeNode: '',
+                                    desc: ''
+                                })
+                            }
+                        }
+                    }
+                    lastQrCode = this.text;
+                    
                     if (this.isRecord) {
                         this.record();
                     }
@@ -295,6 +333,10 @@
                     if (initial) {
                         this.initial = initial;
                     }
+                    var ofenList = localStorage.getItem('ofenList');
+                    if (ofenList) {
+                        this.ofenList = JSON.parse(ofenList);
+                    }
                 },
                 record: function () {
                     localStorage.setItem('qc', this.qc);
@@ -306,10 +348,11 @@
                     localStorage.setItem('sys', this.sys);
                     localStorage.setItem('name', this.name);
                     localStorage.setItem('initial', this.initial);
+                    localStorage.setItem('ofenList', JSON.stringify(this.ofenList))
                 }
             }
         });
-        app.createQrcode();
+        app.createQrcode(e, false);
     </script>
 </body>
 
